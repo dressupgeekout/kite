@@ -14,10 +14,12 @@ class Kite
     @req = Rack::Request.new(env)
     @res = Rack::Response.new
 
-    spi = split_path_info
-    map = find_mapping!(spi) || @default
-    map[:block_params] = [map[:request_method], *spi]
-    map[:block].call(map[:block_params])
+    catch(:halt) do
+      spi = split_path_info
+      map = find_mapping!(spi) || @default
+      map[:block_params] = [map[:request_method], *spi]
+      map[:block].call(map[:block_params])
+    end
 
     @res.finish
   end
@@ -41,9 +43,11 @@ class Kite
     @default = { :block => block }
   end
 
-  # Force the application to return the default response.
+  # Force the application to stop whatever it's doing and respond the default
+  # response.
   def default!
     @default[:block].call
+    throw(:halt)
   end
 
   def segment
@@ -96,4 +100,3 @@ class Kite
   end
 
 end
-
