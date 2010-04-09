@@ -13,11 +13,11 @@ template engine and data backend.
       puts "This is the index."
     end
 
-    on get, 'posts', number do |_, post_id|
+    on get, 'posts', number do |_, _, post_id|
       puts "#{some_database[post_id]}"
     end
 
-    on post, 'posts', number do |_, post_id|
+    on post, 'posts', number do |_, _, post_id|
       some_database[post_id].insert( ... )
       res.redirect '/'
     end
