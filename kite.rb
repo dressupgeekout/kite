@@ -15,9 +15,9 @@ class Kite
     @res = Rack::Response.new
 
     catch(:halt) do
-      spi = split_path_info
-      map = find_mapping!(spi) || @default
-      map[:block_params] = [map[:request_method], *spi]
+      split_path_info!
+      map = find_mapping! || @default
+      map[:block_params] = [map[:request_method], *@spi]
       map[:block].call(map[:block_params])
     end
 
@@ -83,18 +83,22 @@ class Kite
   end
 
   private
-  def split_path_info
-    @req.path_info == '/' ? ['/'] : @req.path_info.sub('/', '').split('/')
+  def split_path_info!
+    @spi = if (@req.path_info == '/')
+             ['/']
+           else
+             @req.path_info.sub('/', '').split('/')
+           end
   end
 
   # The heart of a Kite application. The longest mappings are checked first,
   # because they're the most specific.
-  def find_mapping!(split_path_info)
+  def find_mapping!
     @maps.sort_by{ |m| -m[:path_segments].length }.detect do |map|
       next if @req.request_method != map[:request_method]
-      next if split_path_info.length != map[:path_segments].length
+      next if @spi.length != map[:path_segments].length
       (0...(map[:path_segments].length)).collect { |i|
-        map[:path_segments][i].match(split_path_info[i]).to_a.first
+        map[:path_segments][i].match(@spi[i]).to_a.first
       }.all?
     end
   end
