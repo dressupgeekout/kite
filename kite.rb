@@ -1,11 +1,12 @@
 require 'rack'
+require 'set'
 
 class Kite
 
   attr_reader :req, :res
 
   def initialize(&block)
-    @maps = []
+    @maps = Set.new
     @default = { :block => Proc.new{} }
     self.instance_eval(&block)
   end
