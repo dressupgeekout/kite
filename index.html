@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <style type="text/css">
+    body {
+      width: 60%;
+      margin: auto;
+      text-align: justify;
+      font-family: georgia;
+    }
+    a { color: #0033ff; }
+    pre {
+      background-color: #ddeeff;
+      padding: 1em;
+      margin: 1em 2.5em 1em 2.5em;
+    }
+    dt { font-weight: bold; }
+    dd { padding: 0em 0em 0.5em 0em; }
+    .comment {
+      font-style: italic;
+      color: #445566;
+    }
+    #header { padding: 1em 0em 1em 0em; }
+    #header h1, #header h2 {
+      margin: 0px;
+      padding: 0px;
+      display: inline;
+    }
+    #content { }
+    #footer {
+      padding: 2em 0em 1em 0em;
+      font-size: small;
+    }
+  </style>
+  <title>Kite</title>
+</head>
+<body>
+
+<div id="header">
+  <img src="http://christiank.github.com/images/kite.png"> <p>
+  <h1>Kite</h1>
+  <h2> => for the dynamic web</h2>
+</div>
+
+<div id="content">
+
+  <strong>Kite</strong> is a really tiny web application framework for <a href="http://ruby-lang.org">Ruby</a>/<a href="http://rack.rubyforge.org">Rack</a>. It's actually a bit unfair to call Kite a <em>framework</em>... Kite is more like a fancy URL mapper inspired by Christian Neukirchen's own <a href="http://github.com/chneukirchen/rum">Rum</a>.
+  
+  <h2>Hello, Kite</h2>
+
+<pre>
+require 'kite'
+
+use Rack::CommonLogger
+use Rack::ShowExceptions
+
+app = Kite.new do
+
+  on get, '/' do
+    puts "Hello, Kite"
+  end
+
+end
+
+run app
+</pre>
+
+  <h2>How it Works</h2>
+  
+  A Kite application is a collection of routes and the actions to be taken when a HTTP client requests a URL matching one of those routes. This approach feels very similar to <a href="http://www.sinatrarb.com/">Sinatra</a>, and looks virtually identical to how Rum looks:
+
+<pre>
+<span class="comment"># Sinatra</span>
+get '/blog/:year/:month/:day/:slug' do
+  ...
+end
+
+<span class="comment"># Kite</span>
+on get, 'blog', number, number, number, segment do
+  |_, _, year, month, day, slug|
+  ...
+end
+</pre>
+
+  If the requested URL does not match any of the mappings defined with the <code>on</code> method, then Kite will perform the <code>default</code> response. You can also force the application to perform the <code>default</code> block by calling <code>default!</code>
+
+<pre>
+on get, 'articles', number do |_, _, id|
+  @content = collection_of_posts[id] || default!
+  
+  <span class="comment"># This won't happen if @content is nil:</span>
+  print @content
+end
+
+default do
+  res.status = 404
+  puts "I can't find what you're looking for."
+end
+</pre>
+
+  Kite does not come with a template engine or a data backend or anything like that. You're gonna have to provide those yourself. At least for now.
+
+  <h2>Quick Reference</h2>
+  
+  <dl>    
+  
+    <dt>get, post, put, delete</dt>
+    <dd>You can pass one of these as the first argument of <code>on( )</code>.</dd>
+
+    <dt>number</dt>
+    <dd>Matches any sequence of digits within one segment of a route.</dd>
+    
+    <dt>segment</dt>
+    <dd>Matches any sequence of "URL-safe" characters (alphanumeric chars, hyphen and underscore) within a segment of a route.</dd>
+
+    <dt>default { block ... }</dt>
+    <dd>Specify the Kite application's default response.</dd>
+    
+    <dt>default!</dt>
+    <dd>Force the application to stop whatever it's doing and perform the default response.</dd>
+
+    <dt>params?</dt>
+    <dd>Indicates whether there is any GET or POST data in the current request.<dd>
+    
+    <dt>params</dt>
+    <dd>Access the Rack params hash, which contains both GET and POST data.</dd>
+    
+    <dt>req, res</dt>
+    <dd>Access the Rack::Request and Rack::Response. So, you can perform things like <code>res.status = 401</code> and <code>res.redirect '/'</code>.</dd>
+
+    <dt>print, puts</dt>
+    <dd>Wrappers around <code>Rack::Response#write</code>.</dd>
+  </dl>
+  
+  <h2>Source</h2>
+  The source code is kept inside of a <a href="http://git-scm.org/">Git</a> repository, which can be found <a href="http://github.com/christiank/kite">here</a>.
+
+</div>
+
+<div id="footer">
+  Kite is written by <a href="http://christiankoch.heroku.com">Christian Koch</a> and is released under the MIT License.
+</div>
+
+</body>
+</html>
