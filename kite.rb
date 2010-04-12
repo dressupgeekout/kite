@@ -2,7 +2,7 @@ require 'rack'
 
 class Kite
 
-  attr_accessor :req, :res
+  attr_reader :req, :res
 
   def initialize(&block)
     @maps = []
