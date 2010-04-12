@@ -47,8 +47,8 @@ The available methods are:
   req, res     access the Rack::Request and Rack::Response
   puts, print  wrappers around res.write
   params       a shortcut for req.params
-  params { }   you can pass the values of the GET and POST data into the block.
-  params?      indicates where there is any GET or POST data
+  params { }   you can pass the values of the GET and POST data into the block
+  params?      indicates if there is any GET or POST data
   default { }  specify the actions to take if no paths match
   default!     force the application to take the default action
 
@@ -85,4 +85,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
