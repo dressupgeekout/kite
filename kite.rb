@@ -91,7 +91,7 @@ class Kite
 
   # The heart of a Kite application. The longest mappings are checked first,
   # because they're the most specific.
-  def find_mapping!
+  def find_route!
     @routes.sort_by{ |r| -r[:path_segments].length }.detect do |route|
       next if @req.request_method != route[:request_method]
       next if @spi.length != route[:path_segments].length
