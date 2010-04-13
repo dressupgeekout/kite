@@ -77,10 +77,7 @@ class Kite
   end
 
   def puts(*strings)
-    strings.each do |s|
-      @res.write s
-      @res.write "\n"
-    end
+    strings.each { |s| @res.write "#{s}\n" }
   end
 
   private
