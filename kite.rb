@@ -1,16 +1,53 @@
+#
+# Kite
+# Christian Koch <ckoch002@student.ucr.edu>
+#
+
 require 'rack'
 require 'set'
 
+# A Route is a collection of Rack environment data and the actions to be taken
+# when a HTTP request matches that environment.
+class Route < Hash
+  include Comparable
+
+  # Routes are arranged such that the more specific routes are "greater than"
+  # the less specific routes. Longer routes are more specific. Routes with a
+  # greater number of strings are more specific than routes with a greater
+  # number of regexen.
+  def <=>(another)
+    if self[:path_segments].length == another[:path_segments].length
+      a_strings = self[:path_segments].select { |e| e.is_a?(String) }.length
+      b_strings = another[:path_segments].select { |e| e.is_a?(String) }.length
+      a_strings > b_strings ? 1 : -1
+    else
+      self[:path_segments].length > another[:path_segments].length ? 1 : -1
+    end
+  end
+end
+
+# A Kite application is a collection of routes which respond to Rack calls.
 class Kite
+
+  include Enumerable
+
+  # Iterate through all of this application's routes, longest first.
+  def each
+    @routes.sort.reverse.each { |r| yield r }
+  end
 
   attr_reader :req, :res
 
+  # Create a new Kite app.
   def initialize(&block)
-    @routes = Set.new
-    @default = { :block => Proc.new{} }
+    @routes = SortedSet.new
+    @default = Route[
+      :block, Proc.new{ @res.status = 404; puts "404 NOT FOUND" }
+    ]
     self.instance_eval(&block)
   end
 
+  # The Rack heavy lifting. Most of the dirty work is delegated to #find_route! 
   def call(env)
     @req = Rack::Request.new(env)
     @res = Rack::Response.new
@@ -25,13 +62,14 @@ class Kite
     @res.finish
   end
 
+  # Make Kite aware of a new route.
   def on(request_method, *path_segments, &block)
-    @routes << {
-      :request_method => request_method,
-      :path_segments  => path_segments,
-      :block_params   => [request_method, *path_segments],
-      :block          => block
-    }
+    @routes << Route[
+      :request_method, request_method,
+      :path_segments,  path_segments,
+      :block_params,   [request_method, *path_segments],
+      :block,          block
+    ]
   end
 
   def get; 'GET'; end
@@ -41,46 +79,40 @@ class Kite
 
   # The setter for the default response.
   def default(&block)
-    @default = { :block => block }
+    @default[:block] = block
   end
 
-  # Force the application to stop whatever it's doing and respond the default
+  # Force the application to stop whatever it's doing and return the default
   # response.
   def default!
     @default[:block].call
-    throw(:halt)
+    throw :halt
   end
 
-  def segment
-    /\A([\w-]+)\z/
-  end
-
+  # Matches any sequence of digits.
   def number
     /\A(\d+)\z/
   end
 
-  def params(*args)
-    if block_given?
-      args.collect! { |a| @req.params[a] }
-      yield *args
-    else
-      @req.params
-    end
+  # Matches any sequence of "URL-safe" characters (alphanumeric, hyphen, and
+  # underscore).
+  def segment
+    /\A([\w-]+)\z/
   end
 
-  def params?
-    @req.params.any?
-  end
-
+  # A wrapper around Rack::Response#write.
   def print(*strings)
     strings.each { |s| @res.write s }
   end
 
+  # A wrapper around Rack::Response#write.
   def puts(*strings)
     strings.each { |s| @res.write "#{s}\n" }
   end
 
   private
+
+  # Split the requested URL into segments.
   def split_path_info!
     @spi = if (@req.path_info == '/')
              ['/']
@@ -89,14 +121,13 @@ class Kite
            end
   end
 
-  # The heart of a Kite application. The longest mappings are checked first,
-  # because they're the most specific.
+  # Given a request, determine which route's action should be called.
   def find_route!
-    @routes.sort_by{ |r| -r[:path_segments].length }.detect do |route|
-      next if @req.request_method != route[:request_method]
-      next if @spi.length != route[:path_segments].length
+    self.detect do |route|
+      next if route[:request_method] != @req.request_method
+      next if route[:path_segments].length != @spi.length
       (0...(route[:path_segments].length)).collect { |i|
-        route[:path_segments][i].match(@spi[i]).to_a.first
+        @spi[i].match(route[:path_segments][i]).to_a.first
       }.all?
     end
   end
