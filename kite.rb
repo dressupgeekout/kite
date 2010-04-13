@@ -6,7 +6,7 @@ class Kite
   attr_reader :req, :res
 
   def initialize(&block)
-    @maps = Set.new
+    @routes = Set.new
     @default = { :block => Proc.new{} }
     self.instance_eval(&block)
   end
@@ -17,16 +17,16 @@ class Kite
 
     catch(:halt) do
       split_path_info!
-      map = find_mapping! || @default
-      map[:block_params] = [map[:request_method], *@spi]
-      map[:block].call(map[:block_params])
+      route = find_route! || @default
+      route[:block_params] = [route[:request_method], *@spi]
+      route[:block].call(route[:block_params])
     end
 
     @res.finish
   end
 
   def on(request_method, *path_segments, &block)
-    @maps << {
+    @routes << {
       :request_method => request_method,
       :path_segments  => path_segments,
       :block_params   => [request_method, *path_segments],
@@ -95,11 +95,11 @@ class Kite
   # The heart of a Kite application. The longest mappings are checked first,
   # because they're the most specific.
   def find_mapping!
-    @maps.sort_by{ |m| -m[:path_segments].length }.detect do |map|
-      next if @req.request_method != map[:request_method]
-      next if @spi.length != map[:path_segments].length
-      (0...(map[:path_segments].length)).collect { |i|
-        map[:path_segments][i].match(@spi[i]).to_a.first
+    @routes.sort_by{ |r| -r[:path_segments].length }.detect do |route|
+      next if @req.request_method != route[:request_method]
+      next if @spi.length != route[:path_segments].length
+      (0...(route[:path_segments].length)).collect { |i|
+        route[:path_segments][i].match(@spi[i]).to_a.first
       }.all?
     end
   end
