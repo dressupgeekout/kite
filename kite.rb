@@ -29,6 +29,8 @@ end
 # A Kite application is a collection of routes which respond to Rack calls.
 class Kite
 
+  VERSION = '0.1.0'
+
   include Enumerable
 
   # Iterate through all of this application's routes, longest first.
