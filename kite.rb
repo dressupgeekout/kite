@@ -4,7 +4,6 @@
 #
 
 require 'rack'
-require 'set'
 
 # A Route is a collection of Rack environment data and the actions to be taken
 # when a HTTP request matches that environment.
@@ -42,7 +41,7 @@ class Kite
 
   # Create a new Kite app.
   def initialize(&block)
-    @routes = SortedSet.new
+    @routes = []
     @default = Route[
       :block, Proc.new{ @res.status = 404; puts "404 NOT FOUND" }
     ]
