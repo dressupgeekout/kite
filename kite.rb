@@ -4,6 +4,7 @@
 #
 
 require 'rack'
+require 'templates'
 
 # A Route is a collection of Rack environment data and the actions to be taken
 # when a HTTP request matches that environment.
