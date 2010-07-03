@@ -115,11 +115,11 @@ class Kite
 
   # Split the requested URL into segments.
   def split_path_info!
-    @spi = if (@req.path_info == '/')
-             ['/']
-           else
-             @req.path_info.sub('/', '').split('/')
-           end
+    if (@req.path_info == '/')
+      @spi = ['/']
+    else
+      @spi = @req.path_info.sub('/', '').split('/')
+    end
   end
 
   # Given a request, determine which route's action should be called.
