@@ -3,7 +3,7 @@
 #
 
 Kite is a really simple web application framework, inspired by Sinatra and
-Christian Neukirchen's own mini-framework, Rum. It *just barely* rides on top of
+Leah Neukirchen's own mini-framework, Rum. It *just barely* rides on top of
 Rack... Kite is more like a URL-mapper. You'll have to toss in your own
 template engine and data backend.
 
